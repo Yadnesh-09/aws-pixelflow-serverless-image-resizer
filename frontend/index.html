@@ -1,0 +1,556 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <meta
+    name="description"
+    content="PixelFlow is an AWS serverless image resizing and optimization application."
+  >
+
+  <title>PixelFlow | Serverless Image Resizer</title>
+
+  <link rel="stylesheet" href="styles.css">
+
+  <script src="config.js" defer></script>
+  <script src="app.js" defer></script>
+</head>
+
+<body>
+  <header class="site-header">
+    <div class="container nav">
+      <a class="brand" href="#top">
+        <span class="brand-icon">P</span>
+
+        <span>
+          <strong>PixelFlow</strong>
+          <small>Serverless Image Studio</small>
+        </span>
+      </a>
+
+      <nav class="nav-links">
+        <a href="#resizer">Resize</a>
+        <a href="#history">History</a>
+
+        <span class="aws-badge">
+          Built on AWS
+        </span>
+      </nav>
+    </div>
+  </header>
+
+  <main id="top">
+    <section class="hero">
+      <div class="container hero-grid">
+        <div class="hero-copy">
+          <div class="eyebrow">
+            AWS SERVERLESS IMAGE PROCESSING
+          </div>
+
+          <h1>
+            Resize and optimize images
+            <span>in seconds.</span>
+          </h1>
+
+          <p>
+            Upload a JPEG, PNG or WebP image, choose your dimensions
+            and let AWS Lambda automatically generate an optimized result.
+          </p>
+
+          <div class="hero-actions">
+            <a class="button primary-button" href="#resizer">
+              Resize an image
+            </a>
+
+            <a class="button secondary-button" href="#architecture">
+              View architecture
+            </a>
+          </div>
+
+          <div class="hero-features">
+            <span>✓ Private S3 storage</span>
+            <span>✓ Automatic WebP conversion</span>
+            <span>✓ Up to 10 MB</span>
+          </div>
+        </div>
+
+        <div class="hero-visual">
+          <div class="flow-window">
+            <div class="window-header">
+              <span></span>
+              <span></span>
+              <span></span>
+
+              <strong>Image Processing Pipeline</strong>
+            </div>
+
+            <div class="flow-preview">
+              <div class="image-placeholder original-placeholder">
+                <span>ORIGINAL</span>
+                <strong>2400 × 1600</strong>
+              </div>
+
+              <div class="processing-arrow">
+                <span>λ</span>
+                <small>Lambda</small>
+              </div>
+
+              <div class="image-placeholder result-placeholder">
+                <span>OPTIMIZED</span>
+                <strong>800 × 533</strong>
+              </div>
+            </div>
+
+            <div class="flow-stats">
+              <div>
+                <span>Original</span>
+                <strong>2.8 MB</strong>
+              </div>
+
+              <div>
+                <span>Optimized</span>
+                <strong>340 KB</strong>
+              </div>
+
+              <div>
+                <span>Reduction</span>
+                <strong>87%</strong>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="trust-strip">
+      <div class="container trust-items">
+        <span>AMAZON S3</span>
+        <span>AWS LAMBDA</span>
+        <span>API GATEWAY</span>
+        <span>DYNAMODB</span>
+        <span>CLOUDFRONT</span>
+      </div>
+    </section>
+
+    <section class="section" id="resizer">
+      <div class="container">
+        <div class="section-heading">
+          <div>
+            <p class="eyebrow">IMAGE RESIZER</p>
+            <h2>Create your optimized image</h2>
+          </div>
+
+          <p>
+            Images keep their original aspect ratio and fit within
+            the selected maximum width and height.
+          </p>
+        </div>
+
+        <div class="workspace">
+          <section class="upload-panel">
+            <div
+              class="drop-zone"
+              id="dropZone"
+              tabindex="0"
+              role="button"
+              aria-label="Select an image"
+            >
+              <input
+                type="file"
+                id="fileInput"
+                accept="image/jpeg,image/png,image/webp"
+                hidden
+              >
+
+              <div class="upload-icon">⇧</div>
+
+              <h3>Drop your image here</h3>
+
+              <p>
+                or click to browse from your computer
+              </p>
+
+              <button
+                class="button upload-button"
+                id="browseButton"
+                type="button"
+              >
+                Choose image
+              </button>
+
+              <small>
+                JPEG, PNG or WebP • Maximum 10 MB
+              </small>
+            </div>
+
+            <div class="selected-file hidden" id="selectedFile">
+              <img id="originalPreview" alt="Selected image preview">
+
+              <div class="selected-file-info">
+                <strong id="selectedFileName"></strong>
+
+                <span id="selectedFileDetails"></span>
+
+                <button
+                  class="text-button"
+                  id="removeFileButton"
+                  type="button"
+                >
+                  Remove image
+                </button>
+              </div>
+            </div>
+          </section>
+
+          <section class="settings-panel">
+            <div class="panel-heading">
+              <div>
+                <p class="eyebrow">OUTPUT SETTINGS</p>
+                <h3>Customize result</h3>
+              </div>
+
+              <span class="api-status" id="apiStatus">
+                Checking API…
+              </span>
+            </div>
+
+            <div class="preset-section">
+              <label>Quick presets</label>
+
+              <div class="preset-grid">
+                <button
+                  class="preset-button active"
+                  type="button"
+                  data-width="800"
+                  data-height="800"
+                >
+                  <strong>Balanced</strong>
+                  <span>800 × 800</span>
+                </button>
+
+                <button
+                  class="preset-button"
+                  type="button"
+                  data-width="300"
+                  data-height="300"
+                >
+                  <strong>Thumbnail</strong>
+                  <span>300 × 300</span>
+                </button>
+
+                <button
+                  class="preset-button"
+                  type="button"
+                  data-width="1080"
+                  data-height="1080"
+                >
+                  <strong>Social Post</strong>
+                  <span>1080 × 1080</span>
+                </button>
+
+                <button
+                  class="preset-button"
+                  type="button"
+                  data-width="1920"
+                  data-height="1080"
+                >
+                  <strong>Full HD</strong>
+                  <span>1920 × 1080</span>
+                </button>
+              </div>
+            </div>
+
+            <div class="dimension-grid">
+              <div class="field">
+                <label for="widthInput">Maximum width</label>
+
+                <div class="input-with-unit">
+                  <input
+                    id="widthInput"
+                    type="number"
+                    value="800"
+                    min="50"
+                    max="4000"
+                  >
+
+                  <span>px</span>
+                </div>
+              </div>
+
+              <div class="dimension-link">
+                <span>×</span>
+              </div>
+
+              <div class="field">
+                <label for="heightInput">Maximum height</label>
+
+                <div class="input-with-unit">
+                  <input
+                    id="heightInput"
+                    type="number"
+                    value="800"
+                    min="50"
+                    max="4000"
+                  >
+
+                  <span>px</span>
+                </div>
+              </div>
+            </div>
+
+            <div class="format-quality-grid">
+              <div class="field">
+                <label for="formatInput">Output format</label>
+
+                <select id="formatInput">
+                  <option value="webp">WebP — Recommended</option>
+                  <option value="jpeg">JPEG</option>
+                  <option value="png">PNG</option>
+                </select>
+              </div>
+
+              <div class="field">
+                <div class="quality-label">
+                  <label for="qualityInput">Quality</label>
+
+                  <strong id="qualityValue">82%</strong>
+                </div>
+
+                <input
+                  id="qualityInput"
+                  type="range"
+                  min="30"
+                  max="95"
+                  value="82"
+                >
+              </div>
+            </div>
+
+            <button
+              class="button process-button"
+              id="processButton"
+              type="button"
+              disabled
+            >
+              <span id="processButtonText">
+                Select an image first
+              </span>
+            </button>
+
+            <div
+              class="progress-area hidden"
+              id="progressArea"
+            >
+              <div class="progress-heading">
+                <strong id="progressTitle">
+                  Uploading image…
+                </strong>
+
+                <span id="progressPercent">0%</span>
+              </div>
+
+              <div class="progress-track">
+                <div
+                  class="progress-bar"
+                  id="progressBar"
+                ></div>
+              </div>
+
+              <p id="progressMessage">
+                Securely uploading to Amazon S3.
+              </p>
+            </div>
+
+            <div
+              class="message hidden"
+              id="message"
+              role="status"
+            ></div>
+          </section>
+        </div>
+      </div>
+    </section>
+
+    <section
+      class="section result-section hidden"
+      id="resultSection"
+    >
+      <div class="container">
+        <div class="section-heading">
+          <div>
+            <p class="eyebrow success-eyebrow">
+              PROCESSING COMPLETED
+            </p>
+
+            <h2>Your optimized image is ready</h2>
+          </div>
+        </div>
+
+        <div class="result-card">
+          <div class="comparison-grid">
+            <div class="comparison-item">
+              <div class="comparison-heading">
+                <strong>Original image</strong>
+                <span id="originalDimensions"></span>
+              </div>
+
+              <div class="image-frame">
+                <img
+                  id="resultOriginalPreview"
+                  alt="Original uploaded image"
+                >
+              </div>
+
+              <div class="image-stat">
+                <span>File size</span>
+                <strong id="originalSizeResult"></strong>
+              </div>
+            </div>
+
+            <div class="comparison-item">
+              <div class="comparison-heading">
+                <strong>Optimized result</strong>
+                <span id="outputDimensions"></span>
+              </div>
+
+              <div class="image-frame result-frame">
+                <img
+                  id="optimizedPreview"
+                  alt="Optimized result"
+                >
+              </div>
+
+              <div class="image-stat">
+                <span>File size</span>
+                <strong id="outputSizeResult"></strong>
+              </div>
+            </div>
+          </div>
+
+          <div class="result-summary">
+            <div class="reduction-card">
+              <span>Size reduction</span>
+              <strong id="reductionValue">0%</strong>
+              <small id="savedBytes"></small>
+            </div>
+
+            <div class="result-actions">
+              <a
+                class="button primary-button"
+                id="downloadButton"
+                href="#"
+              >
+                Download optimized image
+              </a>
+
+              <button
+                class="button secondary-button"
+                id="resizeAnotherButton"
+                type="button"
+              >
+                Resize another
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="section history-section" id="history">
+      <div class="container">
+        <div class="section-heading">
+          <div>
+            <p class="eyebrow">LOCAL HISTORY</p>
+            <h2>Your recent image jobs</h2>
+          </div>
+
+          <p>
+            This browser stores only the job IDs created from this device.
+          </p>
+        </div>
+
+        <div class="history-grid" id="historyGrid"></div>
+
+        <div class="empty-history" id="emptyHistory">
+          <span>▧</span>
+          <h3>No image jobs yet</h3>
+          <p>Your completed resize jobs will appear here.</p>
+        </div>
+      </div>
+    </section>
+
+    <section class="section architecture-section" id="architecture">
+      <div class="container">
+        <div class="section-heading">
+          <div>
+            <p class="eyebrow">AWS ARCHITECTURE</p>
+            <h2>Built as an event-driven pipeline</h2>
+          </div>
+        </div>
+
+        <div class="architecture-flow">
+          <div class="architecture-node">
+            <span>01</span>
+            <strong>Browser</strong>
+            <small>Select image</small>
+          </div>
+
+          <div class="architecture-arrow">→</div>
+
+          <div class="architecture-node">
+            <span>02</span>
+            <strong>API Gateway</strong>
+            <small>Upload request</small>
+          </div>
+
+          <div class="architecture-arrow">→</div>
+
+          <div class="architecture-node">
+            <span>03</span>
+            <strong>Amazon S3</strong>
+            <small>Private upload</small>
+          </div>
+
+          <div class="architecture-arrow">→</div>
+
+          <div class="architecture-node highlight-node">
+            <span>04</span>
+            <strong>AWS Lambda</strong>
+            <small>Pillow processing</small>
+          </div>
+
+          <div class="architecture-arrow">→</div>
+
+          <div class="architecture-node">
+            <span>05</span>
+            <strong>DynamoDB</strong>
+            <small>Job status</small>
+          </div>
+
+          <div class="architecture-arrow">→</div>
+
+          <div class="architecture-node">
+            <span>06</span>
+            <strong>Amazon S3</strong>
+            <small>Optimized output</small>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="site-footer">
+    <div class="container footer-content">
+      <div>
+        <strong>PixelFlow</strong>
+        <span>AWS Serverless Image Resizer</span>
+      </div>
+
+      <p>
+        Built by Yadnesh Patil using AWS.
+      </p>
+    </div>
+  </footer>
+</body>
+</html>

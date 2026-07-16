@@ -1,0 +1,11 @@
+.env
+.env.*
+*.zip
+*.pem
+*.key
+__pycache__/
+*.pyc
+.venv/
+venv/
+.vscode/
+infra/*.json
